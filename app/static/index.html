@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Steam Market Analyzer</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header class="topbar">
+  <h1>Steam Market Analyzer</h1>
+  <div class="topbar-right">
+    <span id="loginStatus" class="login-status">בודק חיבור...</span>
+    <button id="loginBtn" class="secondary-btn">התחבר ל-Steam</button>
+    <div class="currency-toggle">
+      <label>מטבע:</label>
+      <select id="currencySelect">
+        <option value="USD">USD ($)</option>
+        <option value="ILS">ILS (₪)</option>
+      </select>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="tab-btn active" data-tab="item">ניתוח פריט</button>
+  <button class="tab-btn" data-tab="inventory">בדיקת Inventory</button>
+</nav>
+
+<main>
+  <!-- ITEM ANALYSIS TAB -->
+  <section id="tab-item" class="tab-panel active">
+    <div class="card">
+      <div class="form-row">
+        <label>משחק</label>
+        <select id="itemGameSelect"></select>
+        <label>AppID מותאם אישית</label>
+        <input type="number" id="itemAppidCustom" placeholder="השאר ריק לשימוש בבחירה למעלה">
+      </div>
+      <div class="form-row">
+        <label>שם פריט מדויק (market_hash_name)</label>
+        <input type="text" id="itemNameInput" placeholder='למשל: AK-47 | Redline (Field-Tested)'>
+      </div>
+      <p class="hint">יש להזין את שם הפריט המדויק כפי שמופיע בדף הפריט ב-Steam Community Market (כולל StatTrak™, אימוג'ים ורמת בלאי).</p>
+      <button id="analyzeBtn">בדוק מחיר וחזה מגמה</button>
+    </div>
+
+    <div id="itemResult" class="card result-card hidden"></div>
+  </section>
+
+  <!-- INVENTORY TAB -->
+  <section id="tab-inventory" class="tab-panel">
+    <div class="card">
+      <div class="form-row">
+        <label>SteamID64</label>
+        <input type="text" id="steamIdInput" placeholder="76561198000000000">
+        <label>משחק</label>
+        <select id="invGameSelect"></select>
+      </div>
+      <button id="loadInventoryBtn">טען Inventory</button>
+      <p class="hint">הפרופיל וה-Inventory חייבים להיות ציבוריים (Public) בהגדרות הפרטיות של Steam.</p>
+    </div>
+
+    <div id="inventoryControls" class="card hidden">
+      <div class="form-row">
+        <label>סוג פריט</label>
+        <select id="typeFilter"><option value="">הכל</option></select>
+        <label>חיפוש</label>
+        <input type="text" id="searchFilter" placeholder="חפש שם פריט...">
+      </div>
+      <div class="form-row">
+        <button id="evaluateBtn">חשב שווי לפריטים המוצגים</button>
+        <span id="evalStatus"></span>
+      </div>
+      <div id="inventoryTotal" class="total-line"></div>
+    </div>
+
+    <div id="inventoryTableWrap" class="card hidden">
+      <table id="inventoryTable">
+        <thead>
+          <tr>
+            <th>אייקון</th>
+            <th>שם</th>
+            <th>סוג</th>
+            <th>כמות</th>
+            <th>מחיר יחידה</th>
+            <th>שווי כולל</th>
+            <th>המלצה</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script src="/app.js"></script>
+</body>
+</html>
