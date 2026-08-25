@@ -1,6 +1,7 @@
 import asyncio
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Query
@@ -14,6 +15,7 @@ app = FastAPI(title="Steam Market Analyzer")
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 LOGIN_HELPER_SCRIPT = PROJECT_ROOT / "login_helper.py"
+LOGIN_HELPER_LOG = PROJECT_ROOT / "login_helper_error.log"
 
 VALID_CURRENCIES = ("USD", "ILS")
 
@@ -56,9 +58,35 @@ async def login_start():
         return {"started": False, "reason": "already_running"}
     if not LOGIN_HELPER_SCRIPT.exists():
         raise HTTPException(500, "login_helper.py לא נמצא בתיקיית הפרויקט.")
+
+    log_file = open(LOGIN_HELPER_LOG, "w", encoding="utf-8")
     _login_process = subprocess.Popen(
-        [sys.executable, str(LOGIN_HELPER_SCRIPT)], cwd=str(PROJECT_ROOT)
+        [sys.executable, str(LOGIN_HELPER_SCRIPT)], cwd=str(PROJECT_ROOT),
+        stdout=log_file, stderr=log_file, stdin=subprocess.DEVNULL,
     )
+
+    # Give it a moment - if it's going to crash on startup (missing WebView2
+    # runtime, a broken dependency, etc.) it usually does so almost
+    # immediately, and polling silently forever would leave the user staring
+    # at "connecting..." with no idea why nothing opened.
+    await asyncio.sleep(1.5)
+    if _login_process.poll() is not None:
+        log_file.close()
+        error_text = ""
+        try:
+            error_text = LOGIN_HELPER_LOG.read_text(encoding="utf-8", errors="replace").strip()
+        except OSError:
+            pass
+        detail = "חלון ההתחברות נסגר מיד עם פתיחה, ולא נפתח שום דבר."
+        if error_text:
+            detail += f" השגיאה שהתקבלה: {error_text[-800:]}"
+        else:
+            detail += (
+                " ייתכן שחסר Microsoft Edge WebView2 Runtime (נדרש להצגת חלון ההתחברות) - "
+                "ניתן להתקין אותו מ- https://developer.microsoft.com/microsoft-edge/webview2/"
+            )
+        raise HTTPException(500, detail)
+
     return {"started": True}
 
 
